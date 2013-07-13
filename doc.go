@@ -13,11 +13,15 @@ keyboard. They also enable greater control of output to the screen.
 
 Usage:
 
-  ter, err := ter.New()
-  if err != nil {
-  	panic(err)
-  }
-  defer ter.Restore()
+	ter, err := term.New()
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err = ter.Restore(); err != nil {
+			// Handle error
+		}
+	}()
 
 Important
 

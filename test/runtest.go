@@ -89,7 +89,11 @@ func TestCharMode() {
 	fmt.Print("\n=== RUN TestCharMode\n")
 
 	ter, _ := term.New()
-	defer ter.Restore()
+	defer func() {
+		if err := ter.Restore(); err != nil {
+			log.Print(err)
+		}
+	}()
 
 	if err := ter.CharMode(); err != nil {
 		log.Print("expected to set character mode:", err)
@@ -127,7 +131,11 @@ func TestEchoMode() {
 	fmt.Print("\n=== RUN TestEchoMode\n")
 
 	ter, _ := term.New()
-	defer ter.Restore()
+	defer func() {
+		if err := ter.Restore(); err != nil {
+			log.Print(err)
+		}
+	}()
 
 	if err := ter.EchoMode(false); err != nil {
 		log.Print("expected to set echo mode:", err)
@@ -196,7 +204,11 @@ func TestDetectSize() {
 	fmt.Print("\n=== RUN TestDetectSize\n")
 
 	ter, _ := term.New()
-	defer ter.Restore()
+	defer func() {
+		if err := ter.Restore(); err != nil {
+			log.Print(err)
+		}
+	}()
 
 	row, col, err := ter.GetSize()
 	if err != nil {
@@ -236,7 +248,11 @@ func TestEditLine() {
 		log.Print(err)
 		return
 	}
-	defer os.Remove(tempHistory)
+	defer func() {
+		if err = os.Remove(tempHistory); err != nil {
+			log.Print(err)
+		}
+	}()
 	hist.Load()
 
 	fmt.Printf("Press ^D to exit\n\n")
@@ -246,7 +262,11 @@ func TestEditLine() {
 		log.Print(err)
 		return
 	}
-	defer ln.Restore()
+	defer func() {
+		if err = ln.Restore(); err != nil {
+			log.Print(err)
+		}
+	}()
 
 	if !*IsInteractive {
 		reply := []string{
@@ -285,7 +305,11 @@ func Lookup() {
 		log.Print(err)
 		return
 	}
-	defer ter.Restore()
+	defer func() {
+		if err = ter.Restore(); err != nil {
+			log.Print(err)
+		}
+	}()
 
 	if err = ter.RawMode(); err != nil {
 		log.Print(err)

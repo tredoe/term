@@ -50,7 +50,11 @@ func TestQuest(t *testing.T) {
 	fmt.Print("\n== Questions\n\n")
 
 	q := NewDefault()
-	defer q.Restore()
+	defer func() {
+		if err = q.Restore(); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	if *IsInteractive {
 		q.ExitAtCtrlC(1)
@@ -145,7 +149,11 @@ func TestQuestExtraBoolean(t *testing.T) {
 	fmt.Println("\n===\n  *NOTE:* It has been added the boolean strings 'oui', 'non'")
 
 	q := New(" > ", "  ERR:", "oui", "non")
-	defer q.Restore()
+	defer func() {
+		if err := q.Restore(); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	if *IsInteractive {
 		q.ExitAtCtrlC(1)

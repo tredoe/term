@@ -75,7 +75,12 @@ func ReadPassword(password []byte) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	defer ter.Restore()
+	defer func() {
+		err2 := ter.Restore()
+		if err2 != nil && err == nil {
+			err = err2
+		}
+	}()
 
 	if err = ter.RawMode(); err != nil {
 		return 0, err
