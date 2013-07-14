@@ -24,7 +24,12 @@ import (
 
 // A Question represents a question.
 type Question struct {
-	isMultiple bool // accept multiple answers
+	val  *validate.Validate // for multiple regular expressions
+	Term *term.Terminal
+
+	extraBool   map[string]bool // to pass it to validate.Atob
+	trueString  string // strings that represent booleans
+	falseString string
 
 	prefix    string // string placed before of questions
 	errPrefix string // string placed before of error messages
@@ -33,13 +38,9 @@ type Question struct {
 	defString string      // default value in string, to be showed in the question
 	defValue  interface{} // default value to return if the input is empty
 
-	trueString  string // strings that represent booleans
-	falseString string
-	extraBool   map[string]bool // to pass it to validate.Atob
+	isMultiple bool // accept multiple answers
 
-	mod  validate.Modifier  // modifiers used at getting the value
-	val  *validate.Validate // for multiple regular expressions
-	Term *term.Terminal
+	mod validate.Modifier  // modifiers used at getting the value
 }
 
 // New returns a Question with the given arguments.
@@ -76,7 +77,12 @@ func New(prefix, errPrefix, trueString, falseString string) *Question {
 	}
 
 	return &Question{
-		false,
+		new(validate.Validate),
+		ter,
+
+		extraBool,
+		trueString,
+		falseString,
 
 		prefix,
 		errPrefix,
@@ -85,13 +91,9 @@ func New(prefix, errPrefix, trueString, falseString string) *Question {
 		"",
 		nil,
 
-		trueString,
-		falseString,
-		extraBool,
+		false,
 
 		validate.None,
-		new(validate.Validate),
-		ter,
 	}
 }
 

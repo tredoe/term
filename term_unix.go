@@ -25,7 +25,6 @@ var (
 
 // A Terminal represents a general terminal interface.
 type Terminal struct {
-	fd   int // File descriptor
 	mode modeType
 
 	// Contain the state of a terminal, enabling to restore the original settings
@@ -33,6 +32,8 @@ type Terminal struct {
 
 	// Window size
 	size sys.Winsize
+
+	fd int // File descriptor
 }
 
 // New creates a new terminal interface in the file descriptor InputFD.
