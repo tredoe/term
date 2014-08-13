@@ -117,25 +117,25 @@ func (b *buffer) refresh() (err error) {
 
 	// To the first line.
 	for ln := posLine; ln > 0; ln-- {
-		if _, err = term.Output.Write(toPreviousLine); err != nil {
+		if _, err = term.Output.Write(ToPreviousLine); err != nil {
 			return outputError(err.Error())
 		}
 	}
 
 	// == Write the line
-	if _, err = term.Output.Write(_CR); err != nil {
+	if _, err = term.Output.Write(CR); err != nil {
 		return outputError(err.Error())
 	}
 	if _, err = term.Output.Write(b.toBytes()); err != nil {
 		return outputError(err.Error())
 	}
-	if _, err = term.Output.Write(delToRight); err != nil {
+	if _, err = term.Output.Write(DelToRight); err != nil {
 		return outputError(err.Error())
 	}
 
 	// == Move cursor to original position.
 	for ln := lastLine; ln > posLine; ln-- {
-		if _, err = term.Output.Write(toPreviousLine); err != nil {
+		if _, err = term.Output.Write(ToPreviousLine); err != nil {
 			return outputError(err.Error())
 		}
 	}
@@ -177,7 +177,7 @@ func (b *buffer) end() (lines int, err error) {
 	lastLine, lastColumn := b.pos2xy(b.size)
 
 	for ln, _ := b.pos2xy(b.pos); ln < lastLine; ln++ {
-		if _, err = term.Output.Write(cursorDown); err != nil {
+		if _, err = term.Output.Write(CursorDown); err != nil {
 			return 0, outputError(err.Error())
 		}
 	}
@@ -199,7 +199,7 @@ func (b *buffer) backward() (start bool, err error) {
 
 	// If position is on the same line.
 	if _, col := b.pos2xy(b.pos); col != 0 {
-		if _, err = term.Output.Write(cursorBackward); err != nil {
+		if _, err = term.Output.Write(CursorBackward); err != nil {
 			return false, outputError(err.Error())
 		}
 	} else {
@@ -222,11 +222,11 @@ func (b *buffer) forward() (end bool, err error) {
 	b.pos++
 
 	if _, col := b.pos2xy(b.pos); col != 0 {
-		if _, err = term.Output.Write(cursorForward); err != nil {
+		if _, err = term.Output.Write(CursorForward); err != nil {
 			return false, outputError(err.Error())
 		}
 	} else {
-		if _, err = term.Output.Write(toNextLine); err != nil {
+		if _, err = term.Output.Write(ToNextLine); err != nil {
 			return false, outputError(err.Error())
 		}
 	}
@@ -286,7 +286,7 @@ func (b *buffer) deleteChar() (err error) {
 	b.size--
 
 	if lastLine, _ := b.pos2xy(b.size); lastLine == 0 {
-		if _, err = term.Output.Write(delChar); err != nil {
+		if _, err = term.Output.Write(DelChar); err != nil {
 			return outputError(err.Error())
 		}
 		return nil
@@ -305,7 +305,7 @@ func (b *buffer) deleteCharPrev() (err error) {
 	b.size--
 
 	if lastLine, _ := b.pos2xy(b.size); lastLine == 0 {
-		if _, err = term.Output.Write(delBackspace); err != nil {
+		if _, err = term.Output.Write(DelBackspace); err != nil {
 			return outputError(err.Error())
 		}
 		return nil
@@ -324,18 +324,18 @@ func (b *buffer) deleteToRight() (err error) {
 
 	// To the last line.
 	for ln := posLine; ln < lastLine; ln++ {
-		if _, err = term.Output.Write(cursorDown); err != nil {
+		if _, err = term.Output.Write(CursorDown); err != nil {
 			return outputError(err.Error())
 		}
 	}
 	// Delete all lines until the cursor position.
 	for ln := lastLine; ln > posLine; ln-- {
-		if _, err = term.Output.Write(delLine_cursorUp); err != nil {
+		if _, err = term.Output.Write(DelLine_cursorUp); err != nil {
 			return outputError(err.Error())
 		}
 	}
 
-	if _, err = term.Output.Write(delToRight); err != nil {
+	if _, err = term.Output.Write(DelToRight); err != nil {
 		return outputError(err.Error())
 	}
 	b.size = b.pos
@@ -350,7 +350,7 @@ func (b *buffer) deleteLine() error {
 	}
 
 	for lines > 0 {
-		if _, err = term.Output.Write(delLine_cursorUp); err != nil {
+		if _, err = term.Output.Write(DelLine_cursorUp); err != nil {
 			return outputError(err.Error())
 		}
 		lines--

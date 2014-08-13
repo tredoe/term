@@ -44,7 +44,6 @@ func init() {
 }
 
 func TestQuest(t *testing.T) {
-	//var ans interface{}
 	var err error
 
 	q := NewCustom(nil, "", "", "oui", "non")
@@ -57,7 +56,7 @@ func TestQuest(t *testing.T) {
 	fmt.Print("\n== Questions\n\n")
 
 	if *NeedUser {
-		q.ExitAtCtrlC(1)
+		q.ExitAtCtrlD(1)
 	} else {
 		Int := "-1"
 		Uint := "1"
@@ -67,25 +66,26 @@ func TestQuest(t *testing.T) {
 		True := "true"
 
 		auto := map[int][]string{
-			0:  []string{String, "", "Oui"},
 			1:  []string{Float, "", "R. C."},
 			2:  []string{""},
 			3:  []string{String, Int},
 			4:  []string{True, Int, ""},
 			5:  []string{String, Float},
-			6:  []string{String, ""},
-			7:  []string{False},
+			6:  []string{String, "", "Oui"},
+			7:  []string{String, ""},
+			8:  []string{False},
+			9:  []string{String, ""},
+			10: []string{String, "blue"},
+			11: []string{Uint},
 
-			8:  []string{String, ""},
-			9:  []string{String, Uint, "10"},
-			10: []string{Uint, "10"},
-			11: []string{String, ""},
 			12: []string{String, ""},
-			13: []string{"photo", "cryp", ""},
+			13: []string{String, ""},
+			14: []string{"photo", "cryp", ""},
+			15: []string{Float, String},
 		}
 
 		go func() {
-			for i := 0; i <= 13; i++ {
+			for i := 1; i <= 15; i++ {
 				for _, v := range auto[i] {
 					time.Sleep(time.Duration(*Time) * time.Second)
 					// Remember that the terminal is in raw mode.
@@ -95,10 +95,8 @@ func TestQuest(t *testing.T) {
 		}()
 	}
 
-	q.Prompt("0. Are you french?").Mod(valid.M_Required)
-	PrintAnswer(q.ReadBool())
-
-	q.Prompt("1. What is your name?").Mod(valid.M_Required)//.Min(4)
+	q.Prompt("1. What is your name?").
+		Mod(valid.M_Required|valid.M_StrictString) //.Min(4)
 	PrintAnswer(q.ReadString())
 
 	q.Prompt("2. What color is your hair?").Default("brown")
@@ -113,34 +111,38 @@ func TestQuest(t *testing.T) {
 	q.Prompt("5. How tall are you?").Default("1.74")
 	PrintAnswer(q.ReadFloat64())
 
-	q.Prompt("6. Do you watch television?").Default("true")
+	q.Prompt("6. Are you french?").Mod(valid.M_Required)
 	PrintAnswer(q.ReadBool())
 
-	q.Prompt("7. Do you read books?").Default("false")
+	q.Prompt("7. Do you watch television?").Default("true")
 	PrintAnswer(q.ReadBool())
-/*
+
+	q.Prompt("8. Do you read books?").Default("false")
+	PrintAnswer(q.ReadBool())
+
 	color := []string{"red", "blue", "black"}
-	q.Prompt("8. What is your favourite color?").Default("blue")
-	ans, err = q.ChoiceString(color)
-	PrintAnswer(ans, err)
 
-	q.Prompt("9. Another favourite color?")
-	ans, err = q.ChoiceString(color)
-	PrintAnswer(ans, err)
+	q.Prompt("9. What is your favourite color?").Default("blue")
+	PrintAnswer(q.ChoiceString(color))
 
-	q.Prompt("10. Choose number").Default(uint(3))
-	ans, err = q.ChoiceUint([]uint{1, 3, 5})
-	PrintAnswer(ans, err)
+	q.Prompt("10. Another favourite color?")
+	PrintAnswer(q.ChoiceString(color))
 
-	q.Prompt("11. Email").Default("ja@contac.me")
+	q.Prompt("11. Choose number").Default("3")
+	PrintAnswer(q.ChoiceInt([]int{1, 3, 5}))
+
+/*
+	q.Prompt("12. Email").Default("ja@contac.me")
 	ans, err = q.SetBasicEmail().Read()
 	PrintAnswer(ans, err)
 
-	q.Prompt("12. Contact").Default("https://foo.com")
+	q.Prompt("13. Contact").Default("https://foo.com")
 	ans, err = q.SetBasicEmail().AddRegexp("contact address", `^http`).Read()
 	PrintAnswer(ans, err)
+*/
+	q.Prompt("14. Hobby").Mod(valid.M_StrictString)
+	PrintAnswer(q.ReadStringSlice())
 
-	q.Prompt("13. Hobby")
-	ans, err = q.ReadSliceString()
-	PrintAnswer(ans, err)*/
+	q.Prompt("15. A film").Default("Terminator")
+	PrintAnswer(q.ReadString())
 }

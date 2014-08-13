@@ -44,13 +44,15 @@ func NewLine(ter *term.Terminal, ps1, ps2 string, lenAnsi int, hist *history) (*
 	buf.insertRunes([]rune(ps1))
 
 	return &Line{
-		hasHistory(hist),
-		lenPS1,
-		ps1,
-		ps2,
-		buf,
-		hist,
-		ter,
+		ter: ter,
+		buf: buf,
+		hist: hist,
+
+		ps1: ps1,
+		ps2: ps2,
+		lenPS1: lenPS1,
+
+		useHistory: hasHistory(hist),
 	}, nil
 }
 
@@ -76,8 +78,8 @@ func (ln *Line) Read() (line string, err error) {
 	var action keyAction
 
 	in := bufio.NewReader(term.Input) // Read input.
-	esc := make([]byte, 2)                // For escape sequences.
-	extEsc := make([]byte, 3)             // Extended escape sequences.
+	esc := make([]byte, 2)            // For escape sequences.
+	extEsc := make([]byte, 3)         // Extended escape sequences.
 
 	// Print the primary prompt.
 	if err = ln.Prompt(); err != nil {
@@ -101,7 +103,7 @@ func (ln *Line) Read() (line string, err error) {
 	}()
 	defer winSize.Close()
 
-	for ;; action = 0 {
+	for ; ; action = 0 {
 		char, _, err := in.ReadRune()
 		if err != nil {
 			return "", inputError(err.Error())
@@ -137,21 +139,21 @@ func (ln *Line) Read() (line string, err error) {
 			continue
 
 		case sys.K_CTRL_C:
-			if err = ln.buf.insertRunes(ctrlC); err != nil {
+			if err = ln.buf.insertRunes(CtrlC); err != nil {
 				return "", err
 			}
 			if _, err = term.Output.Write(CRLF); err != nil {
 				return "", outputError(err.Error())
 			}
 
-			//ChanCtrlC <- 1 TODO: is really necessary?
+			ChanCtrlC <- 1 //TODO: is really necessary?
 
 			if err = ln.Prompt(); err != nil {
 				return "", err
 			}
 			continue
 		case sys.K_CTRL_D:
-			if err = ln.buf.insertRunes(ctrlD); err != nil {
+			if err = ln.buf.insertRunes(CtrlD); err != nil {
 				return "", err
 			}
 			if _, err = term.Output.Write(CRLF); err != nil {
@@ -159,6 +161,7 @@ func (ln *Line) Read() (line string, err error) {
 			}
 
 			ln.Restore()
+			ChanCtrlD <- 1
 			return "", ErrCtrlD
 
 		// Escape sequence
@@ -248,7 +251,7 @@ func (ln *Line) Read() (line string, err error) {
 			continue
 
 		case sys.K_CTRL_L: // Clear screen.
-			if _, err = term.Output.Write(delScreenToUpper); err != nil {
+			if _, err = term.Output.Write(DelScreenToUpper); err != nil {
 				return "", err
 			}
 			if err = ln.Prompt(); err != nil {

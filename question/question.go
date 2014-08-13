@@ -35,8 +35,6 @@ type Question struct {
 	// Strings that represent booleans
 	trueStr  string
 	falseStr string
-
-	isSlice bool // If accept multiple answers.
 }
 
 // NewCustom returns a Question with the given arguments; if any is empty,
@@ -48,6 +46,9 @@ type Question struct {
 //
 // trueStr and falseStr are the strings to be showed when the question
 // needs a boolean like answer and it is used a value by default.
+//
+// The terminal is changed to raw mode so have to use (*Question) Restore()
+// at finish.
 func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr string) *Question {
 	t, err := term.New()
 	if err != nil {
@@ -93,22 +94,17 @@ const (
 )
 
 // New returns a Question using values by default.
+// The terminal is changed to raw mode so have to use (*Question) Restore()
+// at finish.
 func New() *Question {
 	return NewCustom(valid.NewSchema(0), _PREFIX, _PREFIX_ERR, _STR_TRUE, _STR_FALSE)
-}
-
-// TODO: remove
-// clean removes data related to the prompt.
-func (q *Question) clean() {
-	q.prompt = ""
-	//q.suffixPrompt = ""
-	//q.defaultVal = nil
-	//q.flag = 0
 }
 
 // Prompt sets a new prompt.
 func (q *Question) Prompt(str string) *Question {
 	q.prompt = str
+	q.schema.Bydefault = ""
+	q.schema.SetModifier(0)
 	return q
 }
 
@@ -154,7 +150,6 @@ func (q *Question) read() (iface interface{}, err error) {
 	if err != nil {
 		return nil, err
 	}
-	q.clean()
 
 	for {
 		input, err := line.Read()
@@ -258,132 +253,190 @@ func (q *Question) ReadString() (string, error) {
 
 // == Slices
 
-// readSlice is the base to read slices.
-func (q *Question) readSlice() (iface interface{}, err error) {
-	_, err = q.newLine()
-	if err != nil {
+// ReadInt64Slice reads multiple int64.
+// You have to press Enter twice to finish.
+func (q *Question) ReadInt64Slice() (values []int64, err error) {
+	q.schema.DataType = yoda.T_Int64Slice
+
+	if _, err = q.newLine(); err != nil {
 		return nil, err
 	}
 
+	q.schema.IsSlice = true
 	term.Output.Write(readline.CRLF)
-	q.isSlice = true
 
-	switch q.schema.DataType {
-	case yoda.T_SliceInt64:
-		iface = make([]int64, 0)
-		for {
-			v, err := q.ReadInt64()
-			if err != nil {
-				return nil, err
-			}
-			if v == 0 {
-				break
-			}
-			iface = append(iface.([]int64), v)
+	for {
+		v, err := q.ReadInt64()
+		if err != nil {
+			return nil, err
 		}
-
-	case yoda.T_SliceUint64:
-		iface = make([]uint64, 0)
-		for {
-			v, err := q.ReadUint64()
-			if err != nil {
-				return nil, err
-			}
-			if v == 0 {
-				break
-			}
-			iface = append(iface.([]uint64), v)
+		if v == 0 {
+			break
 		}
-
-	case yoda.T_SliceFloat64:
-		iface = make([]float64, 0)
-		for {
-			v, err := q.ReadFloat64()
-			if err != nil {
-				return nil, err
-			}
-			if v == 0 {
-				break
-			}
-			iface = append(iface.([]float64), v)
-		}
-
-	case yoda.T_SliceString:
-		iface = make([]string, 0)
-		for {
-			v, err := q.ReadString()
-			if err != nil {
-				return nil, err
-			}
-			if v == "" {
-				break
-			}
-			iface = append(iface.([]string), v)
-		}
-
-	default:
-		panic("unimplemented")
+		values = append(values, v)
 	}
 
-	q.isSlice = false
+	q.schema.IsSlice = false
+	return
+}
+
+// ReadUint64Slice reads multiple uint64.
+// You have to press Enter twice to finish.
+func (q *Question) ReadUint64Slice() (values []uint64, err error) {
+	q.schema.DataType = yoda.T_Uint64Slice
+
+	if _, err = q.newLine(); err != nil {
+		return nil, err
+	}
+
+	q.schema.IsSlice = true
+	term.Output.Write(readline.CRLF)
+
+	for {
+		v, err := q.ReadUint64()
+		if err != nil {
+			return nil, err
+		}
+		if v == 0 {
+			break
+		}
+		values = append(values, v)
+	}
+
+	q.schema.IsSlice = false
+	return
+}
+
+// ReadFloat64Slice reads multiple float64.
+// You have to press Enter twice to finish.
+func (q *Question) ReadFloat64Slice() (values []float64, err error) {
+	q.schema.DataType = yoda.T_Float64Slice
+
+	if _, err = q.newLine(); err != nil {
+		return nil, err
+	}
+
+	q.schema.IsSlice = true
+	term.Output.Write(readline.CRLF)
+
+	for {
+		v, err := q.ReadFloat64()
+		if err != nil {
+			return nil, err
+		}
+		if v == 0 {
+			break
+		}
+		values = append(values, v)
+	}
+
+	q.schema.IsSlice = false
 	return
 }
 
 // ReadSliceString reads multiple strings.
-// You have to press Enter to finish.
-func (q *Question) ReadSliceString() ([]string, error) {
-	q.schema.DataType = yoda.T_SliceString
+// You have to press Enter twice to finish.
+func (q *Question) ReadStringSlice() (values []string, err error) {
+	q.schema.DataType = yoda.T_StringSlice
 
-	iface, err := q.readSlice()
-	if err != nil {
+	if _, err = q.newLine(); err != nil {
 		return nil, err
 	}
-	return iface.([]string), nil
-}
 
-// == Choices
-/*
-// readChoice is the base to read choices.
-func (q *Question) readChoice(choices interface{}) (value interface{}, err error) {
-	valida := validate.NewSlice(choices, q.flag)
+	q.schema.IsSlice = true
+	term.Output.Write(readline.CRLF)
 
-	// Default value
-	if q.defaultVal != nil {
-		valida.SetDefault(q.defaultVal)
-		q.suffixPrompt = msgForDefault(q.defaultVal)
+	for {
+		v, err := q.ReadString()
+		if err != nil {
+			return nil, err
+		}
+		if v == "" {
+			break
+		}
+		values = append(values, v)
 	}
 
-	fmt.Fprintf(term.Output, "   >>> %s\r\n", valida.JoinChoices())
-
-	value, err = q.read(q.newLine())
-	q.clean()
+	q.schema.IsSlice = false
 	return
 }
 
-// ChoiceInt prints the prompt waiting to get an integer number that is in the slice.
+// == Choices
+
+var (
+	down2 = []byte{13, 10, 13, 10}
+	up2   = []byte(fmt.Sprintf("%s%s", readline.CursorUp, readline.CursorUp))
+)
+
+// ChoiceInt prints the prompt waiting to get an int that is in the slice.
 func (q *Question) ChoiceInt(choices []int) (int, error) {
-	value, err := q.readChoice(choices)
-	return value.(int), err
+	term.Output.Write(down2)
+	fmt.Fprintf(term.Output, "   >>> %v", choices)
+	term.Output.Write(up2)
+
+	for {
+		value, err := q.ReadInt64()
+		if err != nil {
+			return 0, err
+		}
+		for _, v := range choices {
+			if v == int(value) {
+				return int(value), nil
+			}
+		}
+
+		os.Stderr.Write(readline.DelLine_CR)
+		fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, "invalid choice")
+		term.Output.Write(readline.CursorUp)
+	}
 }
 
-// ChoiceUint prints the prompt waiting to get an unsigned number that is in the slice.
-func (q *Question) ChoiceUint(choices []uint) (uint, error) {
-	value, err := q.readChoice(choices)
-	return value.(uint), err
-}
+// ChoiceFloat64 prints the prompt waiting to get a float64 that is in the slice.
+func (q *Question) ChoiceFloat64(choices []float64) (float64, error) {
+	term.Output.Write(down2)
+	fmt.Fprintf(term.Output, "   >>> %v", choices)
+	term.Output.Write(up2)
 
-// ChoiceFloat prints the prompt waiting to get a float number that is in the slice.
-func (q *Question) ChoiceFloat(choices []float32) (float32, error) {
-	value, err := q.readChoice(choices)
-	return value.(float32), err
+	for {
+		value, err := q.ReadFloat64()
+		if err != nil {
+			return 0, err
+		}
+		for _, v := range choices {
+			if v == float64(value) {
+				return float64(value), nil
+			}
+		}
+
+		os.Stderr.Write(readline.DelLine_CR)
+		fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, "invalid choice")
+		term.Output.Write(readline.CursorUp)
+	}
 }
 
 // ChoiceString prints the prompt waiting to get a string that is in the slice.
 func (q *Question) ChoiceString(choices []string) (string, error) {
-	value, err := q.readChoice(choices)
-	return value.(string), err
+	term.Output.Write(down2)
+	fmt.Fprintf(term.Output, "   >>> %v", choices)
+	term.Output.Write(up2)
+
+	for {
+		value, err := q.ReadString()
+		if err != nil {
+			return "", err
+		}
+		for _, v := range choices {
+			if v == string(value) {
+				return string(value), nil
+			}
+		}
+
+		os.Stderr.Write(readline.DelLine_CR)
+		fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, "invalid choice")
+		term.Output.Write(readline.CursorUp)
+	}
 }
-*/
+
 // == Regexp
 /*
 // NewRegexp sets a regular expression "re" with a name to be identified.
@@ -426,27 +479,21 @@ func (q *Question) Read() (string, error) {
 */
 // == Printing
 
-// ANSI codes to set graphic mode
-const (
-	setBold = "\033[1m" // Bold on
-	setOff  = "\033[0m" // All attributes off
-)
-
 // The values by default are set to bold.
-const lenAnsi = len(setBold) + len(setOff)
+const lenAnsi = len(readline.ANSI_SET_BOLD) + len(readline.ANSI_SET_OFF)
 
 // newLine gets a line type ready to show questions.
 func (q *Question) newLine() (*readline.Line, error) {
 	fullPrompt := ""
 	extraChars := 0
 
-	if !q.isSlice {
+	if !q.schema.IsSlice {
 		fullPrompt = q.prefixPrompt + q.prompt
 
 		// Add spaces
 		if fullPrompt[len(fullPrompt)-1] == '?' {
 			fullPrompt += " "
-		} else if !q.isSlice {
+		} else if !q.schema.IsSlice {
 			fullPrompt += ": "
 		}
 
@@ -455,7 +502,11 @@ func (q *Question) newLine() (*readline.Line, error) {
 			extraChars = lenAnsi // The value by default uses ANSI characters.
 
 			if q.schema.DataType != yoda.T_bool {
-				q.suffixPrompt = fmt.Sprintf("[%s%s%s] ", setBold, q.schema.Bydefault, setOff)
+				q.suffixPrompt = fmt.Sprintf("[%s%s%s] ",
+					readline.ANSI_SET_BOLD,
+					q.schema.Bydefault,
+					readline.ANSI_SET_OFF,
+				)
 			} else {
 				b, err := valid.Bool(q.schema, q.schema.Bydefault)
 				if err != nil {
@@ -463,10 +514,18 @@ func (q *Question) newLine() (*readline.Line, error) {
 				}
 				if b {
 					q.suffixPrompt = fmt.Sprintf("[%s%s%s/%s] ",
-						setBold, q.trueStr, setOff, q.falseStr)
+						readline.ANSI_SET_BOLD,
+						q.trueStr,
+						readline.ANSI_SET_OFF,
+						q.falseStr,
+					)
 				} else {
-					q.suffixPrompt += fmt.Sprintf("[%s/%s%s%s] ",
-						q.trueStr, setBold, q.falseStr, setOff)
+					q.suffixPrompt = fmt.Sprintf("[%s/%s%s%s] ",
+						q.trueStr,
+						readline.ANSI_SET_BOLD,
+						q.falseStr,
+						readline.ANSI_SET_OFF,
+					)
 				}
 			}
 
@@ -482,12 +541,11 @@ func (q *Question) newLine() (*readline.Line, error) {
 
 // == Terminal handler
 
-// ExitAtCtrlC exits when it is pressed Ctrl-C, with value n.
-func (q *Question) ExitAtCtrlC(n int) {
+// ExitAtCtrlD exits when it is pressed Ctrl-D, with value n.
+func (q *Question) ExitAtCtrlD(n int) {
 	go func() {
 		select {
-		case <-readline.ChanCtrlC:
-			q.Restore()
+		case <-readline.ChanCtrlD:
 			term.Output.Write(readline.DelLine_CR)
 			os.Exit(n)
 		}
@@ -501,14 +559,18 @@ func (q *Question) Restore() error { return q.term.Restore() }
 
 // PrintAnswer prints values returned by a Question.
 func PrintAnswer(i interface{}, err error) {
+	term.Output.Write(readline.DelLine_CR)
+
 	if err == nil {
-		fmt.Printf("  answer: ")
+		msg := "  answer: "
 		if _, ok := i.(string); ok {
-			fmt.Printf("%q\r\n", i)
+			msg += "%q\r\n"
 		} else {
-			fmt.Printf("%v\r\n", i)
+			msg += "%v\r\n"
 		}
+		fmt.Fprintf(term.Output, msg, i)
+
 	} else if err != readline.ErrCtrlD {
-		fmt.Printf("%s\r\n", err)
+		fmt.Fprintf(term.Output, "%s\r\n", err)
 	}
 }

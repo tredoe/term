@@ -31,16 +31,20 @@ const (
 // To detect if has been pressed CTRL-C
 var ChanCtrlC = make(chan byte)
 
+// To detect if has been pressed CTRL-D
+var ChanCtrlD = make(chan byte)
+
 // A Line represents a line in the term.
 type Line struct {
-	useHistory bool
-	lenPS1     int    // Size of primary prompt
-	ps1        string // Primary prompt
-	ps2        string // Command continuations
-
+	ter  *term.Terminal
 	buf  *buffer  // Text buffer
 	hist *history // History file
-	ter  *term.Terminal
+
+	ps1    string // Primary prompt
+	ps2    string // Command continuations
+	lenPS1 int    // Size of primary prompt
+
+	useHistory bool
 }
 
 // NewDefaultLine returns a line type using the prompt by default, and setting
@@ -64,13 +68,15 @@ func NewDefaultLine(hist *history) (*Line, error) {
 	buf.insertRunes([]rune(PS1))
 
 	return &Line{
-		hasHistory(hist),
-		len(PS1),
-		PS1,
-		PS2,
-		buf,
-		hist,
-		ter,
+		ter: ter,
+		buf: buf,
+		hist: hist,
+
+		ps1: PS1,
+		ps2: PS2,
+		lenPS1: len(PS1),
+
+		useHistory: hasHistory(hist),
 	}, nil
 }
 
