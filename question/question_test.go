@@ -77,8 +77,8 @@ func TestQuest(t *testing.T) {
 			9:  []string{String, ""},
 			10: []string{String, "blue"},
 			11: []string{Uint},
-
 			12: []string{String, ""},
+
 			13: []string{String, ""},
 			14: []string{"photo", "cryp", ""},
 			15: []string{Float, String},
@@ -94,9 +94,9 @@ func TestQuest(t *testing.T) {
 			}
 		}()
 	}
-
+/*
 	q.Prompt("1. What is your name?").
-		Mod(valid.M_Required|valid.M_StrictString) //.Min(4)
+		Check(valid.C_Required|valid.C_StrictString) //.Min(4)
 	PrintAnswer(q.ReadString())
 
 	q.Prompt("2. What color is your hair?").Default("brown")
@@ -111,7 +111,7 @@ func TestQuest(t *testing.T) {
 	q.Prompt("5. How tall are you?").Default("1.74")
 	PrintAnswer(q.ReadFloat64())
 
-	q.Prompt("6. Are you french?").Mod(valid.M_Required)
+	q.Prompt("6. Are you french?").Check(valid.C_Required)
 	PrintAnswer(q.ReadBool())
 
 	q.Prompt("7. Do you watch television?").Default("true")
@@ -130,19 +130,17 @@ func TestQuest(t *testing.T) {
 
 	q.Prompt("11. Choose number").Default("3")
 	PrintAnswer(q.ChoiceInt([]int{1, 3, 5}))
+*/
+	q.Prompt("12. Email").Default("ja@contac.me").Check(valid.C_StrictString)
+	PrintAnswer(q.ReadEmail())
 
-/*
-	q.Prompt("12. Email").Default("ja@contac.me")
-	ans, err = q.SetBasicEmail().Read()
-	PrintAnswer(ans, err)
-
-	q.Prompt("13. Contact").Default("https://foo.com")
+/*	q.Prompt("13. Contact").Default("https://foo.com")
 	ans, err = q.SetBasicEmail().AddRegexp("contact address", `^http`).Read()
 	PrintAnswer(ans, err)
 */
-	q.Prompt("14. Hobby").Mod(valid.M_StrictString)
+/*	q.Prompt("14. Hobby").Check(valid.C_StrictString)
 	PrintAnswer(q.ReadStringSlice())
 
 	q.Prompt("15. A film").Default("Terminator")
-	PrintAnswer(q.ReadString())
+	PrintAnswer(q.ReadString())*/
 }
