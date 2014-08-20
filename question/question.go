@@ -121,44 +121,26 @@ func (q *Question) Check(flag valid.Checker) *Question {
 }
 
 // Min sets the checking for the minimum length of a string,
-// or the minimum value of an integer numeric type.
-func (q *Question) Min(n int) *Question {
+// or the minimum value of a numeric type.
+// The valid types for the aregument are: int, float64.
+func (q *Question) Min(n interface{}) *Question {
 	q.schema.SetMin(n)
 	return q
 }
 
 // Max sets the checking for the maximum length of a string,
-// or the maximum value of an integer numeric type.
-func (q *Question) Max(n int) *Question {
+// or the maximum value of a numeric type.
+// The valid types for the aregument are: int, float64.
+func (q *Question) Max(n interface{}) *Question {
 	q.schema.SetMax(n)
 	return q
 }
 
 // Range sets the checking for the minimum and maximum lengths of a string,
-// or the minimum and maximum values of an integer numeric type.
-func (q *Question) Range(min, max int) *Question {
+// or the minimum and maximum values of a numeric type.
+// The valid types for the areguments are: int, float64.
+func (q *Question) Range(min, max interface{}) *Question {
 	q.schema.SetRange(min, max)
-	return q
-}
-
-// SetMinFloat sets the checking for the minimum length of a floating-point
-// numeric type.
-func (q *Question) SetMinFloat(n float64) *Question {
-	q.schema.SetMinFloat(n)
-	return q
-}
-
-// SetMaxFloat sets the checking for the maximum length of a floating-point
-// numeric type.
-func (q *Question) SetMaxFloat(n float64) *Question {
-	q.schema.SetMaxFloat(n)
-	return q
-}
-
-// SetRangeFloat sets the checking for the minimum and maximum lengths of
-// a floating-point numeric type.
-func (q *Question) SetRangeFloat(min, max float64) *Question {
-	q.schema.SetRangeFloat(min, max)
 	return q
 }
 
