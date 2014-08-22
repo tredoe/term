@@ -12,15 +12,19 @@ import (
 
 	"github.com/kless/term"
 	"github.com/kless/term/readline"
-	//"github.com/kless/yoda"
 	"github.com/kless/yoda/valid"
 )
 
-// ValidFunc is the type of the function called to validate extra types.
-type ValidFunc func(s *valid.Schema, str string) (string, error)
+type extraType int
+
+const (
+	_ extraType = iota
+	t_email
+	t_url
+)
 
 // readExtra is the base to read and validate extra types.
-func (q *Question) readExtra(validFn ValidFunc) (string, error) {
+func (q *Question) readExtra(t extraType) (value string, err error) {
 	var hadError bool
 	line, err := q.newLine()
 	if err != nil {
@@ -33,9 +37,13 @@ func (q *Question) readExtra(validFn ValidFunc) (string, error) {
 			return "", err
 		}
 
-		value, err := validFn(q.schema, input)
-		if err != nil {
-			return "", err
+		switch t {
+		case t_email:
+			value, err = valid.Email(q.schema, input)
+		case t_url:
+			value, err = valid.URL(q.schema, input)
+		default:
+			panic("unimplemented")
 		}
 
 		if err != nil {
@@ -53,60 +61,12 @@ func (q *Question) readExtra(validFn ValidFunc) (string, error) {
 	}
 }
 
-// ReadEmail
+// ReadEmail prints the prompt waiting to get an email.
 func (q *Question) ReadEmail() (value string, err error) {
-	for {
-		if value, err = q.ReadString(); err != nil {
-			return
-		}
-
-		if value, err = valid.Email(q.schema, value); err != nil {
-			os.Stderr.Write(readline.DelLine_CR)
-			fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, err)
-
-			term.Output.Write(readline.CursorUp)
-			//hadError = true
-			continue
-		}
-
-		return //value, err
-	}
-
-//	return q.readExtra(valid.Email(q.schema, ""))
+	return q.readExtra(t_email)
 }
 
-// == Regexp
-
-/*
-// NewRegexp sets a regular expression "re" with a name to be identified.
-func (q *Question) NewRegexp(name, re string) *Question {
-	q.val = validate.NewRegexp(q.flag, name, re)
-	return q
+// ReadURL prints the prompt waiting to get an URL.
+func (q *Question) ReadURL() (value string, err error) {
+	return q.readExtra(t_url)
 }
-
-// SetBasicEmail sets an email based into a basic format like regular expression.
-func (q *Question) SetBasicEmail() *Question {
-	q.val = validate.NewBasicEmail(q.flag)
-	return q
-}
-
-// AddRegexp adds another regular expression.
-// Whether the name to identify the reg.exp. has been set, it is changed.
-func (q *Question) AddRegexp(name, re string) *Question {
-	q.val.AddRegexp(name, re)
-	return q
-}
-
-// Read prints the prompt waiting to get a string that matches with a set of
-// regular expressions.
-func (q *Question) Read() (string, error) {
-	if q.defaultVal != nil {
-		q.val.SetDefault(q.defaultVal)
-		q.suffixPrompt = msgForDefault(q.defaultVal)
-	}
-
-	value, err := q.read(q.newLine(), q.val)
-	q.clean()
-	return value.(string), err
-}
-*/

@@ -55,9 +55,7 @@ func TestQuest(t *testing.T) {
 
 	fmt.Print("\n== Questions\n\n")
 
-	if *NeedUser {
-		q.ExitAtCtrlD(1)
-	} else {
+	if !*NeedUser {
 		Int := "-1"
 		Uint := "1"
 		Float := "1.1"
@@ -78,7 +76,6 @@ func TestQuest(t *testing.T) {
 			10: []string{String, "blue"},
 			11: []string{Uint},
 			12: []string{String, ""},
-
 			13: []string{String, ""},
 			14: []string{"photo", "cryp", ""},
 			15: []string{Float, String},
@@ -94,9 +91,9 @@ func TestQuest(t *testing.T) {
 			}
 		}()
 	}
-/*
+
 	q.Prompt("1. What is your name?").
-		Check(valid.C_Required|valid.C_StrictString) //.Min(4)
+		Check(valid.C_Required|valid.C_StrictString).Min(4)
 	PrintAnswer(q.ReadString())
 
 	q.Prompt("2. What color is your hair?").Default("brown")
@@ -114,14 +111,14 @@ func TestQuest(t *testing.T) {
 	q.Prompt("6. Are you french?").Check(valid.C_Required)
 	PrintAnswer(q.ReadBool())
 
-	q.Prompt("7. Do you watch television?").Default("true")
+/*	q.Prompt("7. Do you watch television?").Default("true")
 	PrintAnswer(q.ReadBool())
 
 	q.Prompt("8. Do you read books?").Default("false")
 	PrintAnswer(q.ReadBool())
 
 	color := []string{"red", "blue", "black"}
-
+// TODO fail
 	q.Prompt("9. What is your favourite color?").Default("blue")
 	PrintAnswer(q.ChoiceString(color))
 
@@ -130,17 +127,16 @@ func TestQuest(t *testing.T) {
 
 	q.Prompt("11. Choose number").Default("3")
 	PrintAnswer(q.ChoiceInt([]int{1, 3, 5}))
-*/
+
 	q.Prompt("12. Email").Default("ja@contac.me").Check(valid.C_StrictString)
 	PrintAnswer(q.ReadEmail())
 
-/*	q.Prompt("13. Contact").Default("https://foo.com")
-	ans, err = q.SetBasicEmail().AddRegexp("contact address", `^http`).Read()
-	PrintAnswer(ans, err)
-*/
-/*	q.Prompt("14. Hobby").Check(valid.C_StrictString)
-	PrintAnswer(q.ReadStringSlice())
+	q.Prompt("13. Web").Default("https://foo.com").Check(valid.C_DNS)
+	PrintAnswer(q.ReadURL())
+
+	q.Prompt("14. Hobby").Check(valid.C_StrictString)
+	PrintAnswer(q.ReadStringSlice())*/
 
 	q.Prompt("15. A film").Default("Terminator")
-	PrintAnswer(q.ReadString())*/
+	PrintAnswer(q.ReadString())
 }

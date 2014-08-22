@@ -49,11 +49,25 @@ type Question struct {
 //
 // The terminal is changed to raw mode so have to use (*Question) Restore()
 // at finish.
+//
+// Handles interrupts CTRL-C to start a new line and CTRL-D to exit.
 func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr string) *Question {
 	t, err := term.New()
 	if err != nil {
 		panic(err)
 	}
+
+	// Interrupt handling.
+	go func() {
+		for {
+			select {
+			case <- readline.ChanCtrlC:
+			case <-readline.ChanCtrlD:
+				term.Output.Write(readline.DelLine_CR)
+				os.Exit(2)
+			}
+		}
+	}()
 
 	if s == nil {
 		s = valid.NewSchema(0)
@@ -99,6 +113,9 @@ const (
 func New() *Question {
 	return NewCustom(valid.NewSchema(0), _PREFIX, _PREFIX_ERR, _STR_TRUE, _STR_FALSE)
 }
+
+// Restore restores terminal settings.
+func (q *Question) Restore() error { return q.term.Restore() }
 
 // Prompt sets a new prompt.
 func (q *Question) Prompt(str string) *Question {
@@ -168,7 +185,7 @@ func (q *Question) newLine() (*readline.Line, error) {
 		if q.schema.Bydefault != "" {
 			extraChars = lenAnsi // The value by default uses ANSI characters.
 
-			if q.schema.DataType != yoda.T_bool {
+			if q.schema.DataType() != yoda.T_bool {
 				q.suffixPrompt = fmt.Sprintf("[%s%s%s] ",
 					readline.ANSI_SET_BOLD,
 					q.schema.Bydefault,
@@ -223,19 +240,3 @@ func PrintAnswer(i interface{}, err error) {
 		fmt.Fprintf(term.Output, "%s\r\n", err)
 	}
 }
-
-// == Terminal handler
-
-// ExitAtCtrlD exits when it is pressed Ctrl-D, with value n.
-func (q *Question) ExitAtCtrlD(n int) {
-	go func() {
-		select {
-		case <-readline.ChanCtrlD:
-			term.Output.Write(readline.DelLine_CR)
-			os.Exit(n)
-		}
-	}()
-}
-
-// Restore restores terminal settings.
-func (q *Question) Restore() error { return q.term.Restore() }

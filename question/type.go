@@ -17,7 +17,7 @@ import (
 )
 
 // read is the base to read and validate input.
-func (q *Question) read() (iface interface{}, err error) {
+func (q *Question) read(typ yoda.Type) (iface interface{}, err error) {
 	var hadError bool
 	line, err := q.newLine()
 	if err != nil {
@@ -30,7 +30,7 @@ func (q *Question) read() (iface interface{}, err error) {
 			return nil, err
 		}
 
-		switch q.schema.DataType {
+		switch typ {
 		case yoda.T_string:
 			iface, err = valid.String(q.schema, input)
 		case yoda.T_bool:
@@ -45,7 +45,6 @@ func (q *Question) read() (iface interface{}, err error) {
 			panic("unimplemented")
 		}
 
-		// if err == valid.ErrRequired {
 		if err != nil {
 			os.Stderr.Write(readline.DelLine_CR)
 			fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, err)
@@ -63,9 +62,7 @@ func (q *Question) read() (iface interface{}, err error) {
 
 // ReadBool prints the prompt waiting to get a string that represents a boolean.
 func (q *Question) ReadBool() (bool, error) {
-	q.schema.DataType = yoda.T_bool
-
-	iface, err := q.read()
+	iface, err := q.read(yoda.T_bool)
 	if err != nil {
 		return false, err
 	}
@@ -74,9 +71,7 @@ func (q *Question) ReadBool() (bool, error) {
 
 // ReadInt64 prints the prompt waiting to get an integer number.
 func (q *Question) ReadInt64() (int64, error) {
-	q.schema.DataType = yoda.T_int64
-
-	iface, err := q.read()
+	iface, err := q.read(yoda.T_int64)
 	if err != nil {
 		return 0, err
 	}
@@ -85,9 +80,7 @@ func (q *Question) ReadInt64() (int64, error) {
 
 // ReadUint64 prints the prompt waiting to get an unsigned integer number.
 func (q *Question) ReadUint64() (uint64, error) {
-	q.schema.DataType = yoda.T_uint64
-
-	iface, err := q.read()
+	iface, err := q.read(yoda.T_uint64)
 	if err != nil {
 		return 0, err
 	}
@@ -96,9 +89,7 @@ func (q *Question) ReadUint64() (uint64, error) {
 
 // ReadFloat64 prints the prompt waiting to get a floating-point number.
 func (q *Question) ReadFloat64() (float64, error) {
-	q.schema.DataType = yoda.T_float64
-
-	iface, err := q.read()
+	iface, err := q.read(yoda.T_float64)
 	if err != nil {
 		return 0, err
 	}
@@ -107,9 +98,7 @@ func (q *Question) ReadFloat64() (float64, error) {
 
 // ReadString prints the prompt waiting to get a string.
 func (q *Question) ReadString() (string, error) {
-	q.schema.DataType = yoda.T_string
-
-	iface, err := q.read()
+	iface, err := q.read(yoda.T_string)
 	if err != nil {
 		return "", err
 	}
@@ -121,8 +110,6 @@ func (q *Question) ReadString() (string, error) {
 // ReadInt64Slice reads multiple int64.
 // You have to press Enter twice to finish.
 func (q *Question) ReadInt64Slice() (values []int64, err error) {
-	q.schema.DataType = yoda.T_Int64Slice
-
 	if _, err = q.newLine(); err != nil {
 		return nil, err
 	}
@@ -148,8 +135,6 @@ func (q *Question) ReadInt64Slice() (values []int64, err error) {
 // ReadUint64Slice reads multiple uint64.
 // You have to press Enter twice to finish.
 func (q *Question) ReadUint64Slice() (values []uint64, err error) {
-	q.schema.DataType = yoda.T_Uint64Slice
-
 	if _, err = q.newLine(); err != nil {
 		return nil, err
 	}
@@ -175,8 +160,6 @@ func (q *Question) ReadUint64Slice() (values []uint64, err error) {
 // ReadFloat64Slice reads multiple float64.
 // You have to press Enter twice to finish.
 func (q *Question) ReadFloat64Slice() (values []float64, err error) {
-	q.schema.DataType = yoda.T_Float64Slice
-
 	if _, err = q.newLine(); err != nil {
 		return nil, err
 	}
@@ -202,8 +185,6 @@ func (q *Question) ReadFloat64Slice() (values []float64, err error) {
 // ReadSliceString reads multiple strings.
 // You have to press Enter twice to finish.
 func (q *Question) ReadStringSlice() (values []string, err error) {
-	q.schema.DataType = yoda.T_StringSlice
-
 	if _, err = q.newLine(); err != nil {
 		return nil, err
 	}
