@@ -213,7 +213,7 @@ func (q *Question) ReadStringSlice() (values []string, err error) {
 
 var (
 	down2 = []byte{13, 10, 13, 10}
-	up2   = []byte(fmt.Sprintf("%s%s", readline.CursorUp, readline.CursorUp))
+	up2   = []byte(fmt.Sprintf("\r%s%s", readline.CursorUp, readline.CursorUp))
 )
 
 // ChoiceInt prints the prompt waiting to get an int that is in the slice.
