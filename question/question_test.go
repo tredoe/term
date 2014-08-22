@@ -78,7 +78,7 @@ func TestQuest(t *testing.T) {
 			12: []string{String, ""},
 			13: []string{String, ""},
 			14: []string{"photo", "cryp", ""},
-			15: []string{Float, String},
+			15: []string{String},
 		}
 
 		go func() {
@@ -93,7 +93,7 @@ func TestQuest(t *testing.T) {
 	}
 
 	q.Prompt("1. What is your name?").
-		Check(valid.C_Required|valid.C_StrictString).Min(4)
+		Check(valid.C_Required | valid.C_StrictString).Min(4)
 	PrintAnswer(q.ReadString())
 
 	q.Prompt("2. What color is your hair?").Default("brown")
@@ -111,14 +111,14 @@ func TestQuest(t *testing.T) {
 	q.Prompt("6. Are you french?").Check(valid.C_Required)
 	PrintAnswer(q.ReadBool())
 
-/*	q.Prompt("7. Do you watch television?").Default("true")
+	q.Prompt("7. Do you watch television?").Default("true")
 	PrintAnswer(q.ReadBool())
 
 	q.Prompt("8. Do you read books?").Default("false")
 	PrintAnswer(q.ReadBool())
 
 	color := []string{"red", "blue", "black"}
-// TODO fail
+
 	q.Prompt("9. What is your favourite color?").Default("blue")
 	PrintAnswer(q.ChoiceString(color))
 
@@ -135,7 +135,7 @@ func TestQuest(t *testing.T) {
 	PrintAnswer(q.ReadURL())
 
 	q.Prompt("14. Hobby").Check(valid.C_StrictString)
-	PrintAnswer(q.ReadStringSlice())*/
+	PrintAnswer(q.ReadStringSlice())
 
 	q.Prompt("15. A film").Default("Terminator")
 	PrintAnswer(q.ReadString())

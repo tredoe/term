@@ -62,6 +62,7 @@ func (q *Question) read(typ yoda.Type) (iface interface{}, err error) {
 
 // ReadBool prints the prompt waiting to get a string that represents a boolean.
 func (q *Question) ReadBool() (bool, error) {
+	q.isBool = true
 	iface, err := q.read(yoda.T_bool)
 	if err != nil {
 		return false, err
@@ -102,6 +103,7 @@ func (q *Question) ReadString() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return iface.(string), nil
 }
 

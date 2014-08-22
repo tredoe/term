@@ -18,7 +18,6 @@ import (
 
 	"github.com/kless/term"
 	"github.com/kless/term/readline"
-	"github.com/kless/yoda"
 	"github.com/kless/yoda/valid"
 )
 
@@ -35,6 +34,8 @@ type Question struct {
 	// Strings that represent booleans
 	trueStr  string
 	falseStr string
+
+	isBool bool // To show the value by default
 }
 
 // NewCustom returns a Question with the given arguments; if any is empty,
@@ -50,7 +51,7 @@ type Question struct {
 // The terminal is changed to raw mode so have to use (*Question) Restore()
 // at finish.
 //
-// Handles interrupts CTRL-C to start a new line and CTRL-D to exit.
+// Handles interrupts CTRL-C to continue into a new line and CTRL-D to exit.
 func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr string) *Question {
 	t, err := term.New()
 	if err != nil {
@@ -61,7 +62,7 @@ func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr str
 	go func() {
 		for {
 			select {
-			case <- readline.ChanCtrlC:
+			case <-readline.ChanCtrlC:
 			case <-readline.ChanCtrlD:
 				term.Output.Write(readline.DelLine_CR)
 				os.Exit(2)
@@ -120,6 +121,7 @@ func (q *Question) Restore() error { return q.term.Restore() }
 // Prompt sets a new prompt.
 func (q *Question) Prompt(str string) *Question {
 	q.prompt = str
+	q.isBool = false
 	q.schema.Bydefault = ""
 	q.schema.SetChecker(0)
 	return q
@@ -185,7 +187,7 @@ func (q *Question) newLine() (*readline.Line, error) {
 		if q.schema.Bydefault != "" {
 			extraChars = lenAnsi // The value by default uses ANSI characters.
 
-			if q.schema.DataType() != yoda.T_bool {
+			if !q.isBool {
 				q.suffixPrompt = fmt.Sprintf("[%s%s%s] ",
 					readline.ANSI_SET_BOLD,
 					q.schema.Bydefault,
