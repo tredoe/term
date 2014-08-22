@@ -43,7 +43,7 @@ func init() {
 	}
 }
 
-func TestQuest(t *testing.T) {
+func TestQuestion(t *testing.T) {
 	var err error
 
 	q := NewCustom(nil, "", "", "oui", "non")

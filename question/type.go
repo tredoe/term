@@ -229,6 +229,8 @@ func (q *Question) ChoiceInt(choices []int) (int, error) {
 		}
 		for _, v := range choices {
 			if v == int(value) {
+				term.Output.Write(readline.CursorDown)
+				term.Output.Write(readline.DelLine_cursorUp)
 				return int(value), nil
 			}
 		}
@@ -252,6 +254,8 @@ func (q *Question) ChoiceFloat64(choices []float64) (float64, error) {
 		}
 		for _, v := range choices {
 			if v == float64(value) {
+				term.Output.Write(readline.CursorDown)
+				term.Output.Write(readline.DelLine_cursorUp)
 				return float64(value), nil
 			}
 		}
@@ -275,6 +279,8 @@ func (q *Question) ChoiceString(choices []string) (string, error) {
 		}
 		for _, v := range choices {
 			if v == string(value) {
+				term.Output.Write(readline.CursorDown)
+				term.Output.Write(readline.DelLine_cursorUp)
 				return string(value), nil
 			}
 		}
