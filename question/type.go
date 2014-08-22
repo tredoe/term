@@ -31,15 +31,15 @@ func (q *Question) read(typ yoda.Type) (iface interface{}, err error) {
 		}
 
 		switch typ {
-		case yoda.T_string:
+		case yoda.String:
 			iface, err = valid.String(q.schema, input)
-		case yoda.T_bool:
+		case yoda.Bool:
 			iface, err = valid.Bool(q.schema, input)
-		case yoda.T_int64:
+		case yoda.Int64:
 			iface, err = valid.Int64(q.schema, input)
-		case yoda.T_uint64:
+		case yoda.Uint64:
 			iface, err = valid.Uint64(q.schema, input)
-		case yoda.T_float64:
+		case yoda.Float64:
 			iface, err = valid.Float64(q.schema, input)
 		default:
 			panic("unimplemented")
@@ -63,7 +63,7 @@ func (q *Question) read(typ yoda.Type) (iface interface{}, err error) {
 // ReadBool prints the prompt waiting to get a string that represents a boolean.
 func (q *Question) ReadBool() (bool, error) {
 	q.isBool = true
-	iface, err := q.read(yoda.T_bool)
+	iface, err := q.read(yoda.Bool)
 	if err != nil {
 		return false, err
 	}
@@ -72,7 +72,7 @@ func (q *Question) ReadBool() (bool, error) {
 
 // ReadInt64 prints the prompt waiting to get an integer number.
 func (q *Question) ReadInt64() (int64, error) {
-	iface, err := q.read(yoda.T_int64)
+	iface, err := q.read(yoda.Int64)
 	if err != nil {
 		return 0, err
 	}
@@ -81,7 +81,7 @@ func (q *Question) ReadInt64() (int64, error) {
 
 // ReadUint64 prints the prompt waiting to get an unsigned integer number.
 func (q *Question) ReadUint64() (uint64, error) {
-	iface, err := q.read(yoda.T_uint64)
+	iface, err := q.read(yoda.Uint64)
 	if err != nil {
 		return 0, err
 	}
@@ -90,7 +90,7 @@ func (q *Question) ReadUint64() (uint64, error) {
 
 // ReadFloat64 prints the prompt waiting to get a floating-point number.
 func (q *Question) ReadFloat64() (float64, error) {
-	iface, err := q.read(yoda.T_float64)
+	iface, err := q.read(yoda.Float64)
 	if err != nil {
 		return 0, err
 	}
@@ -99,7 +99,7 @@ func (q *Question) ReadFloat64() (float64, error) {
 
 // ReadString prints the prompt waiting to get a string.
 func (q *Question) ReadString() (string, error) {
-	iface, err := q.read(yoda.T_string)
+	iface, err := q.read(yoda.String)
 	if err != nil {
 		return "", err
 	}
