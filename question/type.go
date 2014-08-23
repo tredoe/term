@@ -9,6 +9,7 @@ package question
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kless/term"
 	"github.com/kless/term/readline"
@@ -211,82 +212,99 @@ func (q *Question) ReadStringSlice() (values []string, err error) {
 
 // == Choices
 
-var (
-	down2 = []byte{13, 10, 13, 10}
-	up2   = []byte(fmt.Sprintf("\r%s%s", readline.CursorUp, readline.CursorUp))
-)
+// sprintSlice returns a slice with the option by default in bold.
+func (q *Question) sprintSlice(s interface{}) string {
+	src := fmt.Sprintf("%v", s)
+	dst := ""
 
-// ChoiceInt prints the prompt waiting to get an int that is in the slice.
-func (q *Question) ChoiceInt(choices []int) (int, error) {
-	term.Output.Write(down2)
-	fmt.Fprintf(term.Output, "   >>> %v", choices)
-	term.Output.Write(up2)
+	if q.schema.Bydefault != "" {
+		if idx1 := strings.Index(src, q.schema.Bydefault); idx1 != -1 {
+			dst = src[:idx1] + readline.ANSI_SET_BOLD
+
+			if idx2 := strings.Index(src[idx1:], " "); idx2 != -1 {
+				dst += src[idx1:idx1+idx2] + readline.ANSI_SET_OFF
+				dst += src[idx1+idx2:]
+			} else {
+				dst += src[idx1:len(src)-1] + readline.ANSI_SET_OFF + "]"
+			}
+			return dst
+		}
+	}
+	return src
+}
+
+/// readChoice is the base to read and validate input from a set of choices.
+func (q *Question) readChoice(typ yoda.Type, choices interface{}) (iface interface{}, err error) {
+	fmt.Fprintf(term.Output, "%s%s\r\n%s%s\r\n",
+		q.prefixPrompt, q.prompt, _PREFIX_PS2, q.sprintSlice(choices),
+	)
+
+	line, err := readline.NewLine(q.term, _PREFIX_PS2, q.prefixError, 0, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	for {
-		value, err := q.ReadInt64()
+		input, err := line.Read()
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
-		for _, v := range choices {
-			if v == int(value) {
-				term.Output.Write(readline.CursorDown)
-				term.Output.Write(readline.DelLine_cursorUp)
-				return int(value), nil
+
+		switch typ {
+		case yoda.String:
+			iface, _ = valid.String(q.schema, input)
+			for _, v := range choices.([]string) {
+				if v == iface.(string) {
+					return iface, nil
+				}
 			}
+		case yoda.Int:
+			iface, err = valid.Int(q.schema, input)
+			for _, v := range choices.([]int) {
+				if v == iface.(int) {
+					return iface, nil
+				}
+			}
+		case yoda.Float64:
+			iface, err = valid.Float64(q.schema, input)
+			for _, v := range choices.([]float64) {
+				if v == iface.(float64) {
+					return iface, nil
+				}
+			}
+		default:
+			panic("unimplemented")
 		}
 
 		os.Stderr.Write(readline.DelLine_CR)
 		fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, "invalid choice")
 		term.Output.Write(readline.CursorUp)
 	}
+}
+
+// ChoiceInt prints the prompt waiting to get an int that is in the slice.
+func (q *Question) ChoiceInt(choices []int) (int, error) {
+	value, err := q.readChoice(yoda.Int, choices)
+	if err != nil {
+		return 0, err
+	}
+	return value.(int), nil
 }
 
 // ChoiceFloat64 prints the prompt waiting to get a float64 that is in the slice.
 func (q *Question) ChoiceFloat64(choices []float64) (float64, error) {
-	term.Output.Write(down2)
-	fmt.Fprintf(term.Output, "   >>> %v", choices)
-	term.Output.Write(up2)
-
-	for {
-		value, err := q.ReadFloat64()
-		if err != nil {
-			return 0, err
-		}
-		for _, v := range choices {
-			if v == float64(value) {
-				term.Output.Write(readline.CursorDown)
-				term.Output.Write(readline.DelLine_cursorUp)
-				return float64(value), nil
-			}
-		}
-
-		os.Stderr.Write(readline.DelLine_CR)
-		fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, "invalid choice")
-		term.Output.Write(readline.CursorUp)
+	value, err := q.readChoice(yoda.Float64, choices)
+	if err != nil {
+		return 0, err
 	}
+	return value.(float64), nil
 }
 
 // ChoiceString prints the prompt waiting to get a string that is in the slice.
 func (q *Question) ChoiceString(choices []string) (string, error) {
-	term.Output.Write(down2)
-	fmt.Fprintf(term.Output, "   >>> %v", choices)
-	term.Output.Write(up2)
-
-	for {
-		value, err := q.ReadString()
-		if err != nil {
-			return "", err
-		}
-		for _, v := range choices {
-			if v == string(value) {
-				term.Output.Write(readline.CursorDown)
-				term.Output.Write(readline.DelLine_cursorUp)
-				return string(value), nil
-			}
-		}
-
-		os.Stderr.Write(readline.DelLine_CR)
-		fmt.Fprintf(os.Stderr, "%s%s", q.prefixError, "invalid choice")
-		term.Output.Write(readline.CursorUp)
+	value, err := q.readChoice(yoda.String, choices)
+	if err != nil {
+		return "", err
 	}
+	return value.(string), nil
 }

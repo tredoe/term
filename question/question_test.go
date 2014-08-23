@@ -125,7 +125,7 @@ func TestQuestion(t *testing.T) {
 	q.Prompt("10. Another favourite color?")
 	PrintAnswer(q.ChoiceString(color))
 
-	q.Prompt("11. Choose number").Default("3")
+	q.Prompt("11. Choose number").Default("5")
 	PrintAnswer(q.ChoiceInt([]int{1, 3, 5}))
 
 	q.Prompt("12. Email").Default("ja@contac.me").Check(valid.C_StrictString)

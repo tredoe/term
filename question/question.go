@@ -65,6 +65,7 @@ func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr str
 			case <-readline.ChanCtrlC:
 			case <-readline.ChanCtrlD:
 				term.Output.Write(readline.DelLine_CR)
+				t.Restore()
 				os.Exit(2)
 			}
 		}
@@ -101,11 +102,11 @@ func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr str
 
 // Values by default for a Question.
 const (
-	_PREFIX       = " + "
-	_PREFIX_MULTI = "   * "
-	_PREFIX_ERR   = "  [!] "
-	_STR_TRUE     = "y"
-	_STR_FALSE    = "n"
+	_PREFIX     = " + "
+	_PREFIX_PS2 = "   > "
+	_PREFIX_ERR = "  [!] "
+	_STR_TRUE   = "y"
+	_STR_FALSE  = "n"
 )
 
 // New returns a Question using values by default.
@@ -218,7 +219,7 @@ func (q *Question) newLine() (*readline.Line, error) {
 			fullPrompt += q.suffixPrompt
 		}
 	} else {
-		fullPrompt = _PREFIX_MULTI
+		fullPrompt = _PREFIX_PS2
 	}
 
 	// No history
