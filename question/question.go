@@ -15,6 +15,7 @@ package question
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/kless/term"
 	"github.com/kless/term/readline"
@@ -35,6 +36,10 @@ type Question struct {
 	trueStr  string
 	falseStr string
 
+	// To print number of question
+	num      int
+	printNum bool
+
 	isBool bool // To show the value by default
 }
 
@@ -42,8 +47,8 @@ type Question struct {
 // it is used the values by default.
 // Panics if the terminal can not be set.
 //
-// prefixPrompt is the text placed before of the prompt.
-// prefixError is placed before of show any error.
+// prePrompt is the text placed before of the prompt.
+// preError is placed before of show any error.
 //
 // trueStr and falseStr are the strings to be showed when the question
 // needs a boolean like answer and it is used a value by default.
@@ -52,7 +57,7 @@ type Question struct {
 // at finish.
 //
 // Handles interrupts CTRL-C to continue into a new line and CTRL-D to exit.
-func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr string) *Question {
+func NewCustom(s *valid.Schema, prePrompt, preError, trueStr, falseStr string) *Question {
 	t, err := term.New()
 	if err != nil {
 		panic(err)
@@ -74,11 +79,11 @@ func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr str
 	if s == nil {
 		s = valid.NewSchema(0)
 	}
-	if prefixPrompt == "" {
-		prefixPrompt = _PREFIX
+	if prePrompt == "" {
+		prePrompt = _PREFIX
 	}
-	if prefixError == "" {
-		prefixError = _PREFIX_ERR
+	if preError == "" {
+		preError = _PREFIX_ERR
 	}
 	if trueStr == "" {
 		trueStr = _STR_TRUE
@@ -93,8 +98,8 @@ func NewCustom(s *valid.Schema, prefixPrompt, prefixError, trueStr, falseStr str
 		term:   t,
 		schema: s,
 
-		prefixError:  prefixError,
-		prefixPrompt: prefixPrompt,
+		prefixError:  preError,
+		prefixPrompt: prePrompt,
 		trueStr:      trueStr,
 		falseStr:     falseStr,
 	}
@@ -119,8 +124,19 @@ func New() *Question {
 // Restore restores terminal settings.
 func (q *Question) Restore() error { return q.term.Restore() }
 
+// SetPrintNumber shows the number of question.
+func (q *Question) SetPrintNumber() *Question {
+	q.printNum = true
+	return q
+}
+
 // Prompt sets a new prompt.
 func (q *Question) Prompt(str string) *Question {
+	if q.printNum {
+		q.num++
+		str = strconv.Itoa(q.num) + ". " + str
+	}
+
 	q.prompt = str
 	q.isBool = false
 	q.schema.Bydefault = ""
@@ -167,12 +183,12 @@ func (q *Question) Range(min, max interface{}) *Question {
 // == Printing
 
 // The values by default are set to bold.
-const lenAnsi = len(readline.ANSI_SET_BOLD) + len(readline.ANSI_SET_OFF)
+const _LEN_ANSI = len(readline.ANSI_SET_BOLD) + len(readline.ANSI_SET_OFF)
 
 // newLine gets a line type ready to show questions.
 func (q *Question) newLine() (*readline.Line, error) {
 	fullPrompt := ""
-	extraChars := 0
+	lenAnsi := 0
 
 	if !q.schema.IsSlice {
 		fullPrompt = q.prefixPrompt + q.prompt
@@ -186,7 +202,7 @@ func (q *Question) newLine() (*readline.Line, error) {
 
 		// Default value
 		if q.schema.Bydefault != "" {
-			extraChars = lenAnsi // The value by default uses ANSI characters.
+			lenAnsi = _LEN_ANSI // The value by default uses ANSI characters.
 
 			if !q.isBool {
 				q.suffixPrompt = fmt.Sprintf("[%s%s%s] ",
@@ -223,7 +239,7 @@ func (q *Question) newLine() (*readline.Line, error) {
 	}
 
 	// No history
-	return readline.NewLine(q.term, fullPrompt, q.prefixError, extraChars, nil)
+	return readline.NewLine(q.term, fullPrompt, q.prefixError, lenAnsi, nil)
 }
 
 // PrintAnswer prints values returned by a Question.

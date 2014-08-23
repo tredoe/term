@@ -46,7 +46,7 @@ func init() {
 func TestQuestion(t *testing.T) {
 	var err error
 
-	q := NewCustom(nil, "", "", "oui", "non")
+	q := NewCustom(nil, "", "", "oui", "non").SetPrintNumber()
 	defer func() {
 		if err = q.Restore(); err != nil {
 			t.Error(err)
@@ -92,51 +92,51 @@ func TestQuestion(t *testing.T) {
 		}()
 	}
 
-	q.Prompt("1. What is your name?").
+	q.Prompt("What is your name?").
 		Check(valid.C_Required | valid.C_StrictString).Min(4)
 	PrintAnswer(q.ReadString())
 
-	q.Prompt("2. What color is your hair?").Default("brown")
+	q.Prompt("What color is your hair?").Default("brown")
 	PrintAnswer(q.ReadString())
 
-	q.Prompt("3. What temperature is there?").Default("-2")
+	q.Prompt("What temperature is there?").Default("-2")
 	PrintAnswer(q.ReadInt64())
 
-	q.Prompt("4. How old are you?").Default("16")
+	q.Prompt("How old are you?").Default("16")
 	PrintAnswer(q.ReadUint64())
 
-	q.Prompt("5. How tall are you?").Default("1.74")
+	q.Prompt("How tall are you?").Default("1.74")
 	PrintAnswer(q.ReadFloat64())
 
-	q.Prompt("6. Are you french?").Check(valid.C_Required)
+	q.Prompt("Are you french?").Check(valid.C_Required)
 	PrintAnswer(q.ReadBool())
 
-	q.Prompt("7. Do you watch television?").Default("true")
+	q.Prompt("Do you watch television?").Default("true")
 	PrintAnswer(q.ReadBool())
 
-	q.Prompt("8. Do you read books?").Default("false")
+	q.Prompt("Do you read books?").Default("false")
 	PrintAnswer(q.ReadBool())
 
 	color := []string{"red", "blue", "black"}
 
-	q.Prompt("9. What is your favourite color?").Default("blue")
+	q.Prompt("What is your favourite color?").Default("blue")
 	PrintAnswer(q.ChoiceString(color))
 
-	q.Prompt("10. Another favourite color?")
+	q.Prompt("Another favourite color?")
 	PrintAnswer(q.ChoiceString(color))
 
-	q.Prompt("11. Choose number").Default("5")
+	q.Prompt("Choose number").Default("5")
 	PrintAnswer(q.ChoiceInt([]int{1, 3, 5}))
 
-	q.Prompt("12. Email").Default("ja@contac.me").Check(valid.C_StrictString)
+	q.Prompt("Email").Default("ja@contac.me").Check(valid.C_StrictString)
 	PrintAnswer(q.ReadEmail())
 
-	q.Prompt("13. Web").Default("https://foo.com").Check(valid.C_DNS)
+	q.Prompt("Web").Default("https://foo.com").Check(valid.C_DNS)
 	PrintAnswer(q.ReadURL())
 
-	q.Prompt("14. Hobby").Check(valid.C_StrictString)
+	q.Prompt("Hobby").Check(valid.C_StrictString)
 	PrintAnswer(q.ReadStringSlice())
 
-	q.Prompt("15. A film").Default("Terminator")
+	q.Prompt("A film").Default("Terminator")
 	PrintAnswer(q.ReadString())
 }
