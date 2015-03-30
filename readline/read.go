@@ -68,12 +68,12 @@ func NewDefaultLine(hist *history) (*Line, error) {
 	buf.insertRunes([]rune(PS1))
 
 	return &Line{
-		ter: ter,
-		buf: buf,
+		ter:  ter,
+		buf:  buf,
 		hist: hist,
 
-		ps1: PS1,
-		ps2: PS2,
+		ps1:    PS1,
+		ps2:    PS2,
 		lenPS1: len(PS1),
 
 		useHistory: hasHistory(hist),

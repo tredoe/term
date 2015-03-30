@@ -44,12 +44,12 @@ func NewLine(ter *term.Terminal, ps1, ps2 string, lenAnsi int, hist *history) (*
 	buf.insertRunes([]rune(ps1))
 
 	return &Line{
-		ter: ter,
-		buf: buf,
+		ter:  ter,
+		buf:  buf,
 		hist: hist,
 
-		ps1: ps1,
-		ps2: ps2,
+		ps1:    ps1,
+		ps2:    ps2,
 		lenPS1: lenPS1,
 
 		useHistory: hasHistory(hist),
