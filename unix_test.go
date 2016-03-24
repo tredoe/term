@@ -9,16 +9,12 @@
 package term
 
 import (
-	"syscall"
+	"os"
 	"testing"
 )
 
-func init() {
-	InputFD = syscall.Stderr
-}
-
 func TestRawMode(t *testing.T) {
-	ter, err := New()
+	ter, err := NewWithAll(os.Stdin, os.Stderr, int(os.Stderr.Fd()), int(os.Stderr.Fd()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,10 +39,10 @@ func TestRawMode(t *testing.T) {
 	}
 
 	// Restore from a saved state
-	ter, _ = New()
+	ter, _ = NewWith(os.Stdin, os.Stderr)
 	state := ter.OriginalState()
 
-	if err = Restore(InputFD, state); err != nil {
+	if err = Restore(ter.Fd(), state); err != nil {
 		t.Error("expected to restore from saved state:", err)
 	}
 }
@@ -55,7 +51,7 @@ func TestInformation(t *testing.T) {
 	if !SupportANSI() {
 		t.Error("expected to support this terminal")
 	}
-	if !IsTerminal(InputFD) {
+	if !IsTerminal(int(os.Stdin.Fd())) {
 		t.Error("expected to be a terminal")
 	}
 
@@ -67,7 +63,7 @@ func TestInformation(t *testing.T) {
 }
 
 func TestSize(t *testing.T) {
-	ter, _ := New()
+	ter, _ := NewWith(os.Stdin, os.Stderr)
 	defer ter.Restore()
 
 	row, col, err := ter.GetSize()
@@ -81,6 +77,6 @@ func TestSize(t *testing.T) {
 
 	//rowE, colE := GetSizeFromEnv()
 	//if rowE == 0 || colE == 0 {
-		//t.Error("expected to get size from environment")
+	//t.Error("expected to get size from environment")
 	//}
 }

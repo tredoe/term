@@ -75,6 +75,11 @@ func ReadPassword(password []byte) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
+	return ter.ReadPassword(password)
+}
+
+// ReadPassword reads password from terminal
+func (ter *Terminal) ReadPassword(password []byte) (n int, err error) {
 	defer func() {
 		err2 := ter.Restore()
 		if err2 != nil && err == nil {
@@ -95,7 +100,7 @@ func ReadPassword(password []byte) (n int, err error) {
 
 L:
 	for {
-		n, err = unix.Read(InputFD, key)
+		n, err = unix.Read(ter.Fd(), key)
 		if err != nil {
 			return 0, err
 		}
@@ -111,7 +116,7 @@ L:
 				}
 				continue
 			case sys.K_CTRL_C:
-				unix.Write(unix.Stdout, _CTRL_C)
+				unix.Write(ter.OutFd(), _CTRL_C)
 				// Clean data stored, if any.
 				for i, v := range password {
 					if v == 0 {
@@ -129,7 +134,7 @@ L:
 			lenPassword++
 
 			if PasswordShadowed {
-				unix.Write(unix.Stdout, bytes.Repeat(_SHADOW_CHAR, rand.Intn(3)+1))
+				unix.Write(ter.OutFd(), bytes.Repeat(_SHADOW_CHAR, rand.Intn(3)+1))
 			}
 			if lenPassword == len(password) {
 				break
@@ -137,7 +142,7 @@ L:
 		}
 	}
 
-	unix.Write(unix.Stdout, _RETURN)
+	unix.Write(ter.OutFd(), _RETURN)
 	n = lenPassword
 	return
 }

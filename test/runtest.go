@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/kless/term"
@@ -40,6 +41,8 @@ var (
 
 	pr *io.PipeReader
 	pw *io.PipeWriter
+
+	input io.Reader = os.Stdin
 )
 
 func main() {
@@ -70,7 +73,7 @@ func main() {
 
 	if !*IsInteractive {
 		pr, pw = io.Pipe()
-		term.Input = pr
+		input = pr
 	}
 
 	TestCharMode()
@@ -88,7 +91,7 @@ func main() {
 func TestCharMode() {
 	fmt.Print("\n=== RUN TestCharMode\n")
 
-	ter, _ := term.New()
+	ter, _ := term.NewWithAll(input, os.Stderr, syscall.Stdin, syscall.Stderr)
 	defer func() {
 		if err := ter.Restore(); err != nil {
 			log.Print(err)
@@ -100,7 +103,7 @@ func TestCharMode() {
 		return
 	}
 
-	buf := bufio.NewReaderSize(term.Input, 4)
+	buf := bufio.NewReaderSize(ter.Input(), 4)
 	reply := []string{"a", "€", "~"}
 
 	if !*IsInteractive {
@@ -130,7 +133,7 @@ func TestCharMode() {
 func TestEchoMode() {
 	fmt.Print("\n=== RUN TestEchoMode\n")
 
-	ter, _ := term.New()
+	ter, _ := term.NewWithAll(input, os.Stderr, syscall.Stdin, syscall.Stderr)
 	defer func() {
 		if err := ter.Restore(); err != nil {
 			log.Print(err)
@@ -142,7 +145,7 @@ func TestEchoMode() {
 		return
 	}
 	fmt.Print(" + Mode to echo off\n")
-	buf := bufio.NewReader(term.Input)
+	buf := bufio.NewReader(ter.Input())
 
 	if !*IsInteractive {
 		go func() {
@@ -181,7 +184,8 @@ func TestPassword() {
 	fmt.Print(" Password (no echo): ")
 	pass := make([]byte, 8)
 
-	n, err := term.ReadPassword(pass)
+	ter, _ := term.NewWithAll(input, os.Stderr, syscall.Stdin, syscall.Stderr)
+	n, err := ter.ReadPassword(pass)
 	if err != nil {
 		log.Print(err)
 		return
@@ -203,7 +207,7 @@ func TestPassword() {
 func TestDetectSize() {
 	fmt.Print("\n=== RUN TestDetectSize\n")
 
-	ter, _ := term.New()
+	ter, _ := term.NewWithAll(input, os.Stderr, syscall.Stdin, syscall.Stderr)
 	defer func() {
 		if err := ter.Restore(); err != nil {
 			log.Print(err)
@@ -300,7 +304,7 @@ func TestEditLine() {
 
 // Lookup prints the decimal code at pressing a key.
 func Lookup() {
-	ter, err := term.New()
+	ter, err := term.NewWithAll(input, os.Stderr, syscall.Stdin, syscall.Stderr)
 	if err != nil {
 		log.Print(err)
 		return
@@ -315,7 +319,7 @@ func Lookup() {
 		log.Print(err)
 		return
 	} else {
-		buf := bufio.NewReader(term.Input)
+		buf := bufio.NewReader(ter.Input())
 		runes := make([]int32, 0)
 		chars := make([]string, 0)
 

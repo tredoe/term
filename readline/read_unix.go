@@ -17,12 +17,6 @@ import (
 	"github.com/kless/term/sys"
 )
 
-func init() {
-	if !term.SupportANSI() {
-		panic("Your terminal does not support ANSI")
-	}
-}
-
 // NewLine returns a line using both prompts ps1 and ps2, and setting the given
 // terminal to raw mode, if were necessary.
 // lenAnsi is the length of ANSI codes that the prompt ps1 could have.
@@ -40,7 +34,7 @@ func NewLine(ter *term.Terminal, ps1, ps2 string, lenAnsi int, hist *history) (*
 		return nil, err
 	}
 
-	buf := newBuffer(lenPS1, col)
+	buf := newBuffer(lenPS1, col, ter)
 	buf.insertRunes([]rune(ps1))
 
 	return &Line{
@@ -58,10 +52,10 @@ func NewLine(ter *term.Terminal, ps1, ps2 string, lenAnsi int, hist *history) (*
 
 // Prompt prints the primary prompt.
 func (ln *Line) Prompt() (err error) {
-	if _, err = term.Output.Write(DelLine_CR); err != nil {
+	if _, err = ln.ter.Output().Write(DelLine_CR); err != nil {
 		return outputError(err.Error())
 	}
-	if _, err = fmt.Fprint(term.Output, ln.ps1); err != nil {
+	if _, err = fmt.Fprint(ln.ter.Output(), ln.ps1); err != nil {
 		return outputError(err.Error())
 	}
 
@@ -77,9 +71,9 @@ func (ln *Line) Read() (line string, err error) {
 	var isHistoryUsed bool // If the history has been accessed.
 	var action keyAction
 
-	in := bufio.NewReader(term.Input) // Read input.
-	esc := make([]byte, 2)            // For escape sequences.
-	extEsc := make([]byte, 3)         // Extended escape sequences.
+	in := bufio.NewReader(ln.ter.Input()) // Read input.
+	esc := make([]byte, 2)                // For escape sequences.
+	extEsc := make([]byte, 3)             // Extended escape sequences.
 
 	// Print the primary prompt.
 	if err = ln.Prompt(); err != nil {
@@ -123,7 +117,7 @@ func (ln *Line) Read() (line string, err error) {
 			if ln.useHistory {
 				ln.hist.Add(line)
 			}
-			if _, err = term.Output.Write(CRLF); err != nil {
+			if _, err = ln.ter.Output().Write(CRLF); err != nil {
 				return "", outputError(err.Error())
 			}
 			return strings.TrimSpace(line), nil
@@ -142,7 +136,7 @@ func (ln *Line) Read() (line string, err error) {
 			if err = ln.buf.insertRunes(CtrlC); err != nil {
 				return "", err
 			}
-			if _, err = term.Output.Write(CRLF); err != nil {
+			if _, err = ln.ter.Output().Write(CRLF); err != nil {
 				return "", outputError(err.Error())
 			}
 
@@ -156,7 +150,7 @@ func (ln *Line) Read() (line string, err error) {
 			if err = ln.buf.insertRunes(CtrlD); err != nil {
 				return "", err
 			}
-			if _, err = term.Output.Write(CRLF); err != nil {
+			if _, err = ln.ter.Output().Write(CRLF); err != nil {
 				return "", outputError(err.Error())
 			}
 
@@ -251,7 +245,7 @@ func (ln *Line) Read() (line string, err error) {
 			continue
 
 		case sys.K_CTRL_L: // Clear screen.
-			if _, err = term.Output.Write(DelScreenToUpper); err != nil {
+			if _, err = ln.ter.Output().Write(DelScreenToUpper); err != nil {
 				return "", err
 			}
 			if err = ln.Prompt(); err != nil {

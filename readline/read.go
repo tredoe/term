@@ -64,7 +64,7 @@ func NewDefaultLine(hist *history) (*Line, error) {
 		return nil, err
 	}
 
-	buf := newBuffer(len(PS1), col)
+	buf := newBuffer(len(PS1), col, ter)
 	buf.insertRunes([]rune(PS1))
 
 	return &Line{

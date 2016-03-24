@@ -13,14 +13,6 @@ import (
 	"os"
 
 	"github.com/kless/term/sys"
-	"golang.org/x/sys/unix"
-)
-
-// Default values for input and output.
-var (
-	InputFD int       = unix.Stdin
-	Input   io.Reader = os.Stdin
-	Output  io.Writer = os.Stdout
 )
 
 // A Terminal represents a general terminal interface.
@@ -33,21 +25,32 @@ type Terminal struct {
 	// Window size
 	size sys.Winsize
 
-	fd int // File descriptor
+	fd, outFd int // File descriptor
+	in        io.Reader
+	out       io.Writer
 }
 
-// New creates a new terminal interface in the file descriptor InputFD.
+// New creates a new terminal interface.
 func New() (*Terminal, error) {
-	var t Terminal
+	return NewWith(os.Stdin, os.Stdout)
+}
+
+// NewWith creates a new terminal with in/out files
+func NewWith(in, out *os.File) (*Terminal, error) {
+	return NewWithAll(in, out, int(in.Fd()), int(out.Fd()))
+}
+
+// NewWithAll creates a new terminal with in/out and explicitly specified file descriptors
+func NewWithAll(in io.Reader, out io.Writer, inFd, outFd int) (*Terminal, error) {
+	t := &Terminal{in: in, out: out, fd: inFd, outFd: outFd}
 
 	// Get the actual state
-	if err := sys.Getattr(InputFD, &t.lastState); err != nil {
+	if err := sys.Getattr(t.fd, &t.lastState); err != nil {
 		return nil, os.NewSyscallError("sys.Getattr", err)
 	}
 
 	t.oldState = t.lastState // the actual state is copied to another one
-	t.fd = InputFD
-	return &t, nil
+	return t, nil
 }
 
 // == Restore
@@ -176,9 +179,21 @@ func (t *Terminal) Fd() int {
 	return t.fd
 }
 
+func (t *Terminal) Input() io.Reader {
+	return t.in
+}
+
+func (t *Terminal) OutFd() int {
+	return t.outFd
+}
+
+func (t *Terminal) Output() io.Writer {
+	return t.out
+}
+
 // GetSize returns the size of the term.
 func (t *Terminal) GetSize() (row, column int, err error) {
-	if err = sys.GetWinsize(unix.Stdout, &t.size); err != nil {
+	if err = sys.GetWinsize(t.OutFd(), &t.size); err != nil {
 		return
 	}
 	return int(t.size.Row), int(t.size.Col), nil
